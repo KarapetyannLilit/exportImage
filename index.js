@@ -15,7 +15,6 @@ let heightSVG = 500,
   letterSpacing = 0, //
   shadow = "", //?
   horizontalAlign = "left" //???
-
 Promise.each = function (arr, fn) {
   return arr.reduce((prev, cur) => {
     return prev.then(() => fn(cur))
