@@ -6,7 +6,8 @@
 .pnp.js
 /uploads
 /new
-
+/example.js
+/Image.jpg
 # testing
 /coverage
 
