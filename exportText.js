@@ -23,7 +23,7 @@ const dataText = {
     fontId: "805",
     fontSize: 24, // +
     highlightColor: "#FFFFFF", // der chka
-    horizontalAlign: "center", //
+    horizontalAlign: "center", // +
     letterSpacing: 0, // +
     lineHeight: 1, // +
     shadow: "", // der chka
@@ -55,10 +55,9 @@ Promise.each = function (arr, fn) {
     return prev.then(() => fn(cur))
   }, Promise.resolve())
 }
-const tempfont = "./font-temp/temp1.ttf"
 const tempfont1 = "./font-temp/temp.ttf"
 
-const url = "https://static.essemem.com/fonts/sacramento-400.ttf"
+const url = "https://static.essemem.com/fonts/abril-fatface-400.ttf"
 
 const getFontBuffer = async () => {
   return await request(
@@ -77,7 +76,7 @@ const getFontBuffer = async () => {
 
 const writeFontToFile = async () => {
   const buffer = await getFontBuffer()
-  fs.writeFile(tempfont, buffer, (err) => {
+  fs.writeFile(tempfont1, buffer, (err) => {
     if (err) {
       console.error(err)
     }
@@ -124,7 +123,6 @@ const createSvgText = async (
   objAlltextInTspan,
   font,
   dataText,
-  font_base64
 ) => {
   const letterSpacing = dataText.meta.letterSpacing
   const fontSize = dataText.meta.fontSize
@@ -260,13 +258,11 @@ async function createChangedObject(dataText) {
 async function exportText(dataText) {
   await writeFontToFile()
   const font = await opentype.load(tempfont1)
-  const font_base64 = await font2base64.encodeToDataSrc(tempfont)
   const changedTextObj = await createChangedObject(dataText)
   const textSvgBuffer = await createSvgText(
     changedTextObj,
     font,
     dataText,
-    font_base64
   )
   return textSvgBuffer
 }

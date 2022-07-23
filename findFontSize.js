@@ -23,7 +23,7 @@ const dataText = {
     fontId: "805",
     fontSize: 24, // +
     highlightColor: "#FFFFFF", // der chka
-    horizontalAlign: "center", //
+    horizontalAlign: "center", // +
     letterSpacing: 0, // +
     lineHeight: 1, // +
     shadow: "", // der chka
@@ -39,7 +39,7 @@ const dataText = {
       8: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
       9: "hhhhhhhhh",
       10: "",
-      11: "",
+      11: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       12: "h",
     },
   },
@@ -77,7 +77,7 @@ const getFontBuffer = async () => {
 
 const writeFontToFile = async () => {
   const buffer = await getFontBuffer()
-  fs.writeFile(tempfont, buffer, (err) => {
+  fs.writeFile(tempfont1, buffer, (err) => {
     if (err) {
       console.error(err)
     }
@@ -124,8 +124,14 @@ const fontFinder = async (string, font, boxWidth, dataText, fontSize) => {
     return fontSize + 1
   }
 }
+const getLargestLength = (arrayOflengthOfLines) => {
+  return arrayOflengthOfLines.reduce(function (accValue, curValue) {
+    return Math.max(accValue, curValue)
+  })
+}
 
 const createArrayOfFontSizes = async (dataText, font) => {
+  let objectOflengthsAndLines = {}
   const objValues = Object.values(dataText.meta.value)
   let boxWidth
   if (dataText.width === "max-content") {
@@ -133,29 +139,25 @@ const createArrayOfFontSizes = async (dataText, font) => {
   } else {
     boxWidth = dataText.width
   }
-  let arrOfFontSizes = []
-  const fontSIZES = await Promise.each(objValues, async (line) => {
+
+  const lines = await Promise.each(objValues, async (line) => {
     if (line.length === 0) {
-      line = "<>"
+      line = "<"
     }
-    const fontSIZE = await fontFinder(line, font, boxWidth, dataText, 3)
-    arrOfFontSizes.push(fontSIZE)
+    objectOflengthsAndLines[line.length] = line
+    return line
   })
-  return arrOfFontSizes
+
+  const largestLength = await getLargestLength(
+    Object.keys(objectOflengthsAndLines)
+  )
+  const largestLine = objectOflengthsAndLines[largestLength]
+  const fontSIZE = await fontFinder(largestLine, font, boxWidth, dataText, 3)
+  return fontSIZE
 }
 
-const getSmallestFontSize = (arrOfFontSizes) => {
-  return arrOfFontSizes.reduce(function (accValue, curValue) {
-    return Math.min(accValue, curValue)
-  })
-}
-async function getFontSize(dataText) {
-  await writeFontToFile()
-  const font = await opentype.load(tempfont1)
-  const arrOfFontSizes = await createArrayOfFontSizes(dataText, font)
-  const smallestFontSize = await getSmallestFontSize(arrOfFontSizes)
-
-  console.log(smallestFontSize)
+async function getFontSize(dataText, font) {
+  const smallestFontSize = await createArrayOfFontSizes(dataText, font)
   return smallestFontSize
 }
 
@@ -237,7 +239,8 @@ const createSvgText = async (objAlltextInTspan, font, dataText) => {
 async function exportText(dataText) {
   await writeFontToFile()
   const font = await opentype.load(tempfont1)
-  dataText.meta.fontSize = await getFontSize(dataText)
+  dataText.meta.fontSize = await getFontSize(dataText, font)
+  console.log(dataText.meta.fontSize)
   const changedTextObj = dataText.meta.value
   const textSvgBuffer = await createSvgText(changedTextObj, font, dataText)
   return textSvgBuffer
